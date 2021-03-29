@@ -309,19 +309,4 @@ const unsigned char *RingStream::readFully( void *buf, size_t len) {
     abort();
 }
 
-void RingStream::onSave(base::Stream* stream) {
-    // stream->putBe32(mReadBufferLeft);
-    // stream->write(mReadBuffer.data() + mReadBuffer.size() - mReadBufferLeft,
-    //               mReadBufferLeft);
-    // android::base::saveBuffer(stream, mWriteBuffer);
-}
-
-unsigned char* RingStream::onLoad(base::Stream* stream) {
-    return nullptr;
-    // android::base::loadBuffer(stream, &mReadBuffer);
-    // mReadBufferLeft = mReadBuffer.size();
-    // android::base::loadBuffer(stream, &mWriteBuffer);
-    // return reinterpret_cast<unsigned char*>(mWriteBuffer.data());
-}
-
 }  // namespace emugl
