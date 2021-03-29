@@ -16,7 +16,6 @@
 #ifndef __ADDRESS_SPACE_STREAM_H
 #define __ADDRESS_SPACE_STREAM_H
 
-#include "asg_client.h"
 #include "client_iostream.h"
 #include "base/asg_types.h"
 

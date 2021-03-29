@@ -13,8 +13,6 @@ set(ASG_REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(
     asg-base
-    base/AlignedBuf.cpp
-    base/Stream.cpp
     base/ring_buffer.c)
 
 target_include_directories(asg-base PUBLIC ${ASG_REPO_ROOT})
