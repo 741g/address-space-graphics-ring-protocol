@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2011 The Android Open Source Project
+* Copyright (C) 2021 The Android Open Source Project
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#ifndef __IO_STREAM_H__
-#define __IO_STREAM_H__
+#pragma once
 
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+
+namespace asg {
+namespace client {
 
 class IOStream {
 public:
@@ -129,13 +131,5 @@ private:
     uint32_t m_refcount;
 };
 
-//
-// When a client opens a connection to the renderer, it should
-// send unsigned int value indicating the "clientFlags".
-// The following are the bitmask of the clientFlags.
-// currently only one bit is used which flags the server
-// it should exit.
-//
-#define IOSTREAM_CLIENT_EXIT_SERVER      1
-
-#endif
+} // namespace client
+} // namespace asg

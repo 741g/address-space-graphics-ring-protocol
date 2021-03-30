@@ -25,6 +25,9 @@ static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 static const size_t kFlushInterval = 10000;
 
+namespace asg {
+namespace client {
+
 RingStreamClient::RingStreamClient(void* sharedRegion, size_t ringXferBufferSize, ring_stream_client_doorbell_t) :
     IOStream(kFlushInterval),
     m_tmpBuf(0),
@@ -563,3 +566,6 @@ void RingStreamClient::resetBackoff() {
     m_backoffIters = 0;
     m_backoffFactor = 1;
 }
+
+} // namespace client
+} // namespace asg

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2011 The Android Open Source Project
+* Copyright (C) 2021 The Android Open Source Project
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+namespace asg {
+namespace server {
 
 class IOStream {
 protected:
@@ -79,9 +82,6 @@ public:
         return readFully(buf, len);
     }
 
-    virtual void* getDmaForReading(uint64_t guest_paddr) = 0;
-    virtual void unlockDma(uint64_t guest_paddr) = 0;
-
 protected:
     virtual const unsigned char *readRaw(void *buf, size_t *inout_len) = 0;
 
@@ -89,3 +89,6 @@ protected:
     size_t m_bufsize;
     size_t m_free = 0;
 };
+
+} // namespace server
+} // namespace asg

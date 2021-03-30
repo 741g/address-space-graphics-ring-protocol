@@ -30,3 +30,8 @@ add_library(
 
 target_link_libraries(
     asg-server PRIVATE asg-base)
+
+add_executable(asg_unittests tests/asg_unittest.cpp)
+target_link_libraries(asg_unittests PRIVATE asg-base asg-client asg-server gtest_main)
+
+add_test(NAME asg_unittests COMMAND asg_unittests)

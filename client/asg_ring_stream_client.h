@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2011 The Android Open Source Project
+* Copyright (C) 2021 The Android Open Source Project
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -13,8 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#ifndef __ADDRESS_SPACE_STREAM_H
-#define __ADDRESS_SPACE_STREAM_H
+#pragma once
 
 #include "client_iostream.h"
 #include "base/asg_types.h"
@@ -22,6 +21,9 @@
 class RingStreamClient;
 
 typedef void (*ring_stream_client_doorbell_t)(void);
+
+namespace asg {
+namespace client {
 
 class RingStreamClient : public IOStream {
 public:
@@ -79,4 +81,5 @@ private:
     uint64_t m_backoffFactor;
 };
 
-#endif
+} // namespace client
+} // namespace asg

@@ -21,7 +21,8 @@
 #include <functional>
 #include <vector>
 
-namespace emugl {
+namespace asg {
+namespace server {
 
 // An IOStream instance that can be used to consume according to asg protocol.
 // Takes consumer callbacks as argument.
@@ -62,8 +63,6 @@ protected:
     virtual void* allocBuffer(size_t minSize) override final;
     virtual int commitBuffer(size_t size) override final;
     virtual const unsigned char* readRaw(void* buf, size_t* inout_len) override final;
-    virtual void* getDmaForReading(uint64_t guest_paddr) override final;
-    virtual void unlockDma(uint64_t guest_paddr) override final;
 
     void type1Read(uint32_t available, char* begin, size_t* count, char** current, const char* ptrEnd);
     void type2Read(uint32_t available, size_t* count, char** current, const char* ptrEnd);
@@ -87,4 +86,5 @@ protected:
     bool mInSnapshotOperation = false;
 };
 
-}  // namespace emugl
+} // namespace server
+} // namespace asg

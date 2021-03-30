@@ -18,7 +18,8 @@
 #include <assert.h>
 #include <memory.h>
 
-namespace emugl {
+namespace asg {
+namespace server {
 
 RingStream::RingStream(
         uint8_t* shared_buffer,
@@ -288,15 +289,6 @@ void RingStream::type3Read(
     *count += actuallyRead;
 }
 
-void* RingStream::getDmaForReading(uint64_t guest_paddr) {
-    return nullptr;
-}
-
-void RingStream::unlockDma(uint64_t guest_paddr) {
-    (void)guest_paddr;
-    // g_emugl_dma_unlock(guest_paddr);
-}
-
 int RingStream::writeFully(const void* buf, size_t len) {
     void* dstBuf = alloc(len);
     memcpy(dstBuf, buf, len);
@@ -309,4 +301,5 @@ const unsigned char *RingStream::readFully( void *buf, size_t len) {
     abort();
 }
 
-}  // namespace emugl
+} // namespace asg
+} // namespace server
