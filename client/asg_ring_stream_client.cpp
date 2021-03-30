@@ -28,7 +28,7 @@ static const size_t kFlushInterval = 10000;
 namespace asg {
 namespace client {
 
-RingStreamClient::RingStreamClient(void* sharedRegion, size_t ringXferBufferSize, ring_stream_client_doorbell_t) :
+RingStream::RingStream(void* sharedRegion, size_t ringXferBufferSize, ring_stream_client_doorbell_t) :
     IOStream(kFlushInterval),
     m_tmpBuf(0),
     m_tmpBufSize(0),
@@ -50,7 +50,7 @@ RingStreamClient::RingStreamClient(void* sharedRegion, size_t ringXferBufferSize
     m_context = asg_context_create((char*)sharedRegion, (char*)sharedRegion + sizeof(struct asg_ring_storage), ringXferBufferSize);
 }
 
-RingStreamClient::~RingStreamClient() {
+RingStream::~RingStream() {
     flush();
     ensureType3Finished();
     ensureType1Finished();
@@ -58,12 +58,12 @@ RingStreamClient::~RingStreamClient() {
     if (m_tmpBuf) free(m_tmpBuf);
 }
 
-size_t RingStreamClient::idealAllocSize(size_t len) {
+size_t RingStream::idealAllocSize(size_t len) {
     if (len > m_writeStep) return len;
     return m_writeStep;
 }
 
-void *RingStreamClient::allocBuffer(size_t minSize) {
+void *RingStream::allocBuffer(size_t minSize) {
     ensureType3Finished();
 
     if (!m_readBuf) {
@@ -102,7 +102,7 @@ void *RingStreamClient::allocBuffer(size_t minSize) {
     }
 };
 
-int RingStreamClient::commitBuffer(size_t size)
+int RingStream::commitBuffer(size_t size)
 {
     if (size == 0) return 0;
 
@@ -118,14 +118,14 @@ int RingStreamClient::commitBuffer(size_t size)
     }
 }
 
-const unsigned char *RingStreamClient::readFully(void *ptr, size_t totalReadSize)
+const unsigned char *RingStream::readFully(void *ptr, size_t totalReadSize)
 {
 
     unsigned char* userReadBuf = static_cast<unsigned char*>(ptr);
 
     if (!userReadBuf) {
         if (totalReadSize > 0) {
-            // ALOGE("RingStreamClient::commitBufferAndReadFully failed, userReadBuf=NULL, totalReadSize %zu, lethal"
+            // ALOGE("RingStream::commitBufferAndReadFully failed, userReadBuf=NULL, totalReadSize %zu, lethal"
             //         " error, exiting.", totalReadSize);
             abort();
         }
@@ -194,7 +194,7 @@ const unsigned char *RingStreamClient::readFully(void *ptr, size_t totalReadSize
     return userReadBuf;
 }
 
-const unsigned char *RingStreamClient::read(void *buf, size_t *inout_len) {
+const unsigned char *RingStream::read(void *buf, size_t *inout_len) {
     unsigned char* dst = (unsigned char*)buf;
     size_t wanted = *inout_len;
     ssize_t actual = speculativeRead(dst, wanted);
@@ -208,7 +208,7 @@ const unsigned char *RingStreamClient::read(void *buf, size_t *inout_len) {
     return (const unsigned char*)dst;
 }
 
-int RingStreamClient::writeFully(const void *buf, size_t size)
+int RingStream::writeFully(const void *buf, size_t size)
 {
     ensureType3Finished();
     ensureType1Finished();
@@ -272,7 +272,7 @@ int RingStreamClient::writeFully(const void *buf, size_t size)
     return 0;
 }
 
-int RingStreamClient::writeFullyAsync(const void *buf, size_t size)
+int RingStream::writeFullyAsync(const void *buf, size_t size)
 {
     ensureType3Finished();
     ensureType1Finished();
@@ -339,7 +339,7 @@ int RingStreamClient::writeFullyAsync(const void *buf, size_t size)
     return 0;
 }
 
-const unsigned char *RingStreamClient::commitBufferAndReadFully(
+const unsigned char *RingStream::commitBufferAndReadFully(
     size_t writeSize, void *userReadBufPtr, size_t totalReadSize) {
 
     if (m_usingTmpBuf) {
@@ -353,11 +353,11 @@ const unsigned char *RingStreamClient::commitBufferAndReadFully(
     }
 }
 
-bool RingStreamClient::isInError() const {
+bool RingStream::isInError() const {
     return 1 == m_context.ring_config->in_error;
 }
 
-ssize_t RingStreamClient::speculativeRead(unsigned char* readBuffer, size_t trySize) {
+ssize_t RingStream::speculativeRead(unsigned char* readBuffer, size_t trySize) {
     ensureType3Finished();
     ensureType1Finished();
 
@@ -395,16 +395,16 @@ ssize_t RingStreamClient::speculativeRead(unsigned char* readBuffer, size_t tryS
     return actuallyRead;
 }
 
-void RingStreamClient::notifyAvailable() {
+void RingStream::notifyAvailable() {
     m_doorbellFunc();
     ++m_notifs;
 }
 
-uint32_t RingStreamClient::getRelativeBufferPos(uint32_t pos) {
+uint32_t RingStream::getRelativeBufferPos(uint32_t pos) {
     return pos & m_writeBufferMask;
 }
 
-void RingStreamClient::advanceWrite() {
+void RingStream::advanceWrite() {
     m_writeStart += m_context.ring_config->flush_interval;
 
     if (m_writeStart == m_buf + m_context.ring_config->buffer_size) {
@@ -412,7 +412,7 @@ void RingStreamClient::advanceWrite() {
     }
 }
 
-void RingStreamClient::ensureConsumerFinishing() {
+void RingStream::ensureConsumerFinishing() {
     uint32_t currAvailRead = ring_buffer_available_read(m_context.to_host, 0);
 
     while (currAvailRead) {
@@ -433,7 +433,7 @@ void RingStreamClient::ensureConsumerFinishing() {
     }
 }
 
-void RingStreamClient::ensureType1Finished() {
+void RingStream::ensureType1Finished() {
     uint32_t currAvailRead =
         ring_buffer_available_read(m_context.to_host, 0);
 
@@ -447,7 +447,7 @@ void RingStreamClient::ensureType1Finished() {
     }
 }
 
-void RingStreamClient::ensureType3Finished() {
+void RingStream::ensureType3Finished() {
     uint32_t availReadLarge =
         ring_buffer_available_read(
             m_context.to_host_large_xfer.ring,
@@ -469,7 +469,7 @@ void RingStreamClient::ensureType3Finished() {
     }
 }
 
-int RingStreamClient::type1Write(uint32_t bufferOffset, size_t size) {
+int RingStream::type1Write(uint32_t bufferOffset, size_t size) {
     ensureType3Finished();
 
     size_t sent = 0;
@@ -541,7 +541,7 @@ int RingStreamClient::type1Write(uint32_t bufferOffset, size_t size) {
     return 0;
 }
 
-void RingStreamClient::backoff() {
+void RingStream::backoff() {
 #if defined(HOST_BUILD) || defined(__APPLE__) || defined(__MACOSX) || defined(__Fuchsia__)
     static const uint32_t kBackoffItersThreshold = 50000000;
     static const uint32_t kBackoffFactorDoublingIncrement = 50000000;
@@ -562,7 +562,7 @@ void RingStreamClient::backoff() {
     }
 }
 
-void RingStreamClient::resetBackoff() {
+void RingStream::resetBackoff() {
     m_backoffIters = 0;
     m_backoffFactor = 1;
 }

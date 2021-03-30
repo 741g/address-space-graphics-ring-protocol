@@ -18,17 +18,15 @@
 #include "client_iostream.h"
 #include "base/asg_types.h"
 
-class RingStreamClient;
-
 typedef void (*ring_stream_client_doorbell_t)(void);
 
 namespace asg {
 namespace client {
 
-class RingStreamClient : public IOStream {
+class RingStream : public IOStream {
 public:
-    explicit RingStreamClient(void* sharedRegion, size_t regionSize, ring_stream_client_doorbell_t);
-    ~RingStreamClient();
+    explicit RingStream(void* sharedRegion, size_t regionSize, ring_stream_client_doorbell_t);
+    ~RingStream();
 
     virtual size_t idealAllocSize(size_t len);
     virtual void *allocBuffer(size_t minSize);
