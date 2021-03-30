@@ -18,6 +18,8 @@
 #include "client_iostream.h"
 #include "base/asg_types.h"
 
+#include <functional>
+
 typedef void (*ring_stream_client_doorbell_t)(void);
 
 namespace asg {
@@ -25,7 +27,8 @@ namespace client {
 
 class RingStream : public IOStream {
 public:
-    explicit RingStream(void* sharedRegion, size_t regionSize, ring_stream_client_doorbell_t);
+    using DoorbellFunc = std::function<void()>;
+    explicit RingStream(void* sharedRegion, size_t regionSize, DoorbellFunc);
     ~RingStream();
 
     virtual size_t idealAllocSize(size_t len);
@@ -51,7 +54,7 @@ private:
     void backoff();
     void resetBackoff();
 
-    ring_stream_client_doorbell_t m_doorbellFunc;
+    DoorbellFunc m_doorbellFunc;
     unsigned char* m_tmpBuf;
     size_t m_tmpBufSize;
     size_t m_tmpBufXferSize;

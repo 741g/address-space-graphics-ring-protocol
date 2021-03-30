@@ -24,10 +24,10 @@ namespace server {
 RingStream::RingStream(
         uint8_t* shared_buffer,
         size_t ring_xfer_buffer_size,
-        android::emulation::asg::ConsumerCallbacks callbacks) :
+        RingStream::UnavailableReadFunc unavailbleReadFunc) :
     IOStream(128 * 1024),
     mContext(asg_context_create((char*)shared_buffer, (char*)shared_buffer + sizeof(struct asg_ring_storage), ring_xfer_buffer_size)),
-    mCallbacks(callbacks) { }
+    mUnavailableReadFunc(unavailbleReadFunc) { }
 
 RingStream::~RingStream() = default;
 
@@ -181,7 +181,7 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
                 return nullptr;
             }
 
-            int unavailReadResult = mCallbacks.onUnavailableRead();
+            int unavailReadResult = mUnavailableReadFunc();
 
             if (-1 == unavailReadResult) {
                 mShouldExit = true;

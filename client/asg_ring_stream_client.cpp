@@ -28,8 +28,9 @@ static const size_t kFlushInterval = 10000;
 namespace asg {
 namespace client {
 
-RingStream::RingStream(void* sharedRegion, size_t ringXferBufferSize, ring_stream_client_doorbell_t) :
+RingStream::RingStream(void* sharedRegion, size_t ringXferBufferSize, DoorbellFunc doorbellFunc) :
     IOStream(kFlushInterval),
+    m_doorbellFunc(doorbellFunc),
     m_tmpBuf(0),
     m_tmpBufSize(0),
     m_tmpBufXferSize(0),

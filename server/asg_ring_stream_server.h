@@ -30,11 +30,12 @@ class RingStream final : public IOStream {
 public:
     using Buffer =
         android::base::SmallFixedVector<unsigned char, 512>;
+    using UnavailableReadFunc = std::function<int()>;
 
     RingStream(
         uint8_t* shared_buffer,
         size_t ring_xfer_buffer_size,
-        android::emulation::asg::ConsumerCallbacks callbacks);
+        UnavailableReadFunc unavailableReadFunc);
     ~RingStream();
 
     int writeFully(const void* buf, size_t len) override;
@@ -51,7 +52,7 @@ protected:
     void type3Read(uint32_t available, size_t* count, char** current, const char* ptrEnd);
 
     struct asg_context mContext;
-    android::emulation::asg::ConsumerCallbacks mCallbacks;
+    UnavailableReadFunc mUnavailableReadFunc;
 
     std::vector<asg_type1_xfer> mType1Xfers;
     std::vector<asg_type2_xfer> mType2Xfers;
