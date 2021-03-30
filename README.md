@@ -66,6 +66,7 @@ Then, the shared buffer is initialized accordingly:
 
 `asg_context_create()` along with the following `ring_config` field settings populate the `asg_ring_storage` section of the shared memory with the correct struct layout and other parameters, and also initializes fields for the ring buffers themselves.
 
+```
     MessageChannel<int, 1> doorbellChannel;
     bool stop = false;
 
