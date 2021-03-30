@@ -31,10 +31,6 @@ RingStream::RingStream(
 
 RingStream::~RingStream() = default;
 
-int RingStream::getNeededFreeTailSize() const {
-    return mContext.ring_config->flush_interval;
-}
-
 void* RingStream::allocBuffer(size_t minSize) {
     if (mWriteBuffer.size() < minSize) {
         mWriteBuffer.resize_noinit(minSize);
@@ -123,12 +119,6 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
 
         *(mContext.host_state) = ASG_HOST_STATE_CAN_CONSUME;
 
-        // if (mInSnapshotOperation) {
-        //     fprintf(stderr, "%s: %p in snapshot operation, exit\n", __func__, mRenderThreadPtr);
-        //     // In a snapshot operation, exit
-        //     return nullptr;
-        // }
-
         if (mShouldExit) {
             return nullptr;
         }
@@ -191,24 +181,10 @@ const unsigned char* RingStream::readRaw(void* buf, size_t* inout_len) {
                 return nullptr;
             }
 
-            if (mShouldExitForSnapshot && mInSnapshotOperation) {
-                return nullptr;
-            }
-
             int unavailReadResult = mCallbacks.onUnavailableRead();
 
             if (-1 == unavailReadResult) {
                 mShouldExit = true;
-            }
-
-            // pause pre snapshot
-            if (-2 == unavailReadResult) {
-                mShouldExitForSnapshot = true;
-            }
-
-            // resume post snapshot
-            if (-3 == unavailReadResult) {
-                mShouldExitForSnapshot = false;
             }
 
             continue;

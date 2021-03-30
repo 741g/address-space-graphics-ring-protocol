@@ -109,13 +109,6 @@ public:
         return readFully(buf, len);
     }
 
-    // These two methods are defined and used in GLESv2_enc. Any reference
-    // outside of GLESv2_enc will produce a link error. This is intentional
-    // (technical debt).
-    void readbackPixels(void* context, int width, int height, unsigned int format, unsigned int type, void* pixels);
-    void uploadPixels(void* context, int width, int height, int depth, unsigned int format, unsigned int type, const void* pixels);
-
-
 protected:
     void rewind() {
         m_iostreamBuf = NULL;

@@ -28,9 +28,6 @@ namespace server {
 // Takes consumer callbacks as argument.
 class RingStream final : public IOStream {
 public:
-    using OnUnavailableReadCallback = std::function<int()>;
-    using GetPtrAndSizeCallback =
-        std::function<void(uint64_t, char**, size_t*)>;
     using Buffer =
         android::base::SmallFixedVector<unsigned char, 512>;
 
@@ -40,24 +37,10 @@ public:
         android::emulation::asg::ConsumerCallbacks callbacks);
     ~RingStream();
 
-    int getNeededFreeTailSize() const;
-
     int writeFully(const void* buf, size_t len) override;
     const unsigned char *readFully( void *buf, size_t len) override;
 
     void printStats();
-
-    void pausePreSnapshot() {
-        mInSnapshotOperation = true;
-    }
-
-    void resume() {
-        mInSnapshotOperation = false;
-    }
-
-    bool inSnapshotOperation() const {
-        return mInSnapshotOperation;
-    }
 
 protected:
     virtual void* allocBuffer(size_t minSize) override final;
@@ -65,7 +48,6 @@ protected:
     virtual const unsigned char* readRaw(void* buf, size_t* inout_len) override final;
 
     void type1Read(uint32_t available, char* begin, size_t* count, char** current, const char* ptrEnd);
-    void type2Read(uint32_t available, size_t* count, char** current, const char* ptrEnd);
     void type3Read(uint32_t available, size_t* count, char** current, const char* ptrEnd);
 
     struct asg_context mContext;
@@ -82,8 +64,6 @@ protected:
     size_t mTotalRecv = 0;
     bool mBenchmarkEnabled = false;
     bool mShouldExit = false;
-    bool mShouldExitForSnapshot = false;
-    bool mInSnapshotOperation = false;
 };
 
 } // namespace server
