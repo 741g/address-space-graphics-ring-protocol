@@ -42,7 +42,7 @@ First, we define constants that say how large the xfer buffer is going to be:
     static constexpr size_t kRingXferSize = 16384;
 ```
 
-The total size occupied by the shared buffer will be `sizeof(struct asg_ring_storage + kRingXferSize`. Next, we define a step size for flushing buffers on the ring. It must be a power of 2 that is less than half `kRingXferSize`:
+The total size occupied by the shared buffer will be `sizeof(struct asg_ring_storage) + kRingXferSize`. Next, we define a step size for flushing buffers on the ring. It must be a power of 2 that is less than half `kRingXferSize`:
 
 ```
     static constexpr size_t kRingStepSize = 4096;
@@ -91,8 +91,9 @@ Then, the shared buffer is initialized accordingly:
 ## Define doorbell callbacks on the client and server
 
 ASG requires a mechanism for the client to wake the server, and for the server to receive such wakeup requests, on a channel that isn't necessarily reliant on shared memory. There are two sides to this:
-    - Client: doorbell callback called whenever the client, according to AGS ring protocol, thinks it might be a good idea to wake up the server.
-    - Server: unavailable read callback called when we want to stop listening for traffic from the client and go to sleep inside this callback. It is assumed the client doorbell callback will trigger stuff that wakes up the server from the point in the callback where it's sleeping.
+
+- Client: doorbell callback called whenever the client, according to AGS ring protocol, thinks it might be a good idea to wake up the server.
+- Server: unavailable read callback called when we want to stop listening for traffic from the client and go to sleep inside this callback. It is assumed the client doorbell callback will trigger stuff that wakes up the server from the point in the callback where it's sleeping.
 
 Note that these callbacks can be no-ops if the server spins forever. But usually we don't want that, so we have the server go to sleep in its unavailable-read callback.
 
