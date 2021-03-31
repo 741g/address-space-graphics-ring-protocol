@@ -1,6 +1,6 @@
 # Address Space Graphics Ring Stream Protocol
 
-This library captures the ring read/write protocol behind Address Space Graphics in gfxstream (https://android.googlesource.com/device/generic/vulkan-cereal), so it can be used with a wide range of protocols and virtual devices.
+This library captures the ring read/write protocol behind Address Space Graphics (ASG) in gfxstream (https://android.googlesource.com/device/generic/vulkan-cereal), so it can be used with a wide range of protocols and virtual devices.
 
 It consists of a client and server side, to be statically or dynamically linked with the guest and host side, respectively. This library is NOT responsible for:
 
@@ -25,10 +25,10 @@ The shared region has the following layout:
 
 # TODO
 
-The code right now is quite roughly extracted from https://android.googlesource.com/device/generic/goldfish-opengl and https://android.googlesource.com/device/generic/vulkan-cereal, and needs:
+The code right now is quite roughly extracted from https://android.googlesource.com/device/generic/goldfish-opengl and https://android.googlesource.com/device/generic/vulkan-cereal, and needs the following:
 
-- Performance tests
 - Maybe provide some plausible host IPC implementations of doorbell callbacks and shared memory?
+- Allow goldfish-opengl / vulkan-cereal repos to be built against this library, which will require more refactoring of those projects.
 
 # How to use
 
@@ -159,3 +159,53 @@ After initializing, we can then send/receive traffic. In the test, it's realized
 Note the use of `alloc` only, instead of always `alloc` followed by `flush`. This can save on doorbells, but even if we always follow up flush from alloc, it's possible to still avoid doorbells in that case.
 
 The tests contain further code that demonstrates sending replies. There is also a random test to test correctness more thoroughly.
+
+# Performance consideration: Server must do more work than the client
+
+See `tests/asg_benchmark.cpp` for more details. The ASG ring stream protocol suppresses doorbells if it can detect that the server is definitely doing work before checking for more traffic. If it can put in new traffic in the ring edgewise, while the serve is in this state, then it can count on the server checking for available data again, and it will be automatically picked up. Thus, ASG fundamentally relies on the server doing more nontrivial work than the client, which is why "Graphics" is in the name (graphics workloads tend to be feed forward with most traffic from client to server and the more actual work is done on the server interpreting and running the traffic).
+
+The benchmark sets up the client and server like so:
+
+```
+    FunctorThread clientTestThread([&clientStream]() {
+        for (uint32_t i = 0; i < kSends; ++i) {
+            auto buf = clientStream.alloc(kSendSizeBytes);
+            memset(buf, 0xff, kSendSizeBytes);
+        }
+        clientStream.flush();
+    });
+
+    size_t wanted = kSends * kSendSizeBytes;
+    std::vector<uint8_t> readBuf(wanted, 0);
+    std::vector<uint8_t> golden(wanted, 0xff);
+    memset(golden.data(), 0xff, wanted);
+
+    FunctorThread serverTestThread([&serverStream, &readBuf, &golden]() {
+
+        size_t wanted = kSends * kSendSizeBytes;
+        size_t read = 0;
+
+        while (read < wanted) {
+            size_t readThisTime = serverStream.read(readBuf.data() + read, wanted - read);
+
+            // Do some processing so there's an actual workload to suppress
+            // doorbells against.
+            //
+            // Here just check if we actually read the expected byte values.
+            // Doing actual processing here helps suppress doorbells as the
+            // client will know for sure it's cool to put more data on the ring
+            // without doorbelling (otherwise, we might be in serverStream.read
+            // which might end up sleeping in |unavailRead|).
+            //
+            // In real use cases, we would have been doing even heavier
+            // processing here (rendering)
+
+            EXPECT_EQ(0, memcmp(readBuf.data() + read, golden.data() + read, readThisTime));
+
+            read += readThisTime;
+        }
+    });
+```
+
+The client simply sends a bunch of data into a sink without expecting replies, while the server consumes it directly, with the server work in the benchmark being a comparison of the byte values with what's expected. Although that is not much work compared to actual graphics workloads, adding that extra bit of work there increases the ratio of packets sent to doorbell events from around *10* to *5-7k* (as measured on my 2016 macbook pro). This unbalances the amount of work the client and server are doing.
+

@@ -43,4 +43,8 @@ target_link_libraries(
 add_executable(asg_unittests tests/asg_unittest.cpp)
 target_link_libraries(asg_unittests PRIVATE asg-client asg-server gtest_main)
 
+add_executable(asg_benchmark tests/asg_benchmark.cpp)
+target_link_libraries(asg_benchmark PRIVATE asg-client asg-server gtest_main)
+
 add_test(NAME asg_unittests COMMAND asg_unittests)
+add_test(NAME asg_benchmark COMMAND asg_benchmark)
